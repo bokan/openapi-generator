@@ -1,79 +1,87 @@
 package {{rootPackage}};
 
-import java.nio.charset.Charset;
-
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.github.phiz71.vertx.swagger.router.OperationIdServiceIdResolver;
-import com.github.phiz71.vertx.swagger.router.SwaggerRouter;
-
-import io.swagger.models.Swagger;
-import io.swagger.parser.SwaggerParser;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Context;
 import io.vertx.core.Future;
-import io.vertx.core.file.FileSystem;
-import io.vertx.core.json.Json;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
+import io.vertx.serviceproxy.ServiceBinder;
+
+
+{{#apiInfo}}{{#apis}}import {{apiPackage}}.{{classname}};
+{{/apis}}{{/apiInfo}}
 
 public class MainApiVerticle extends AbstractVerticle {
-    final static Logger LOGGER = LoggerFactory.getLogger(MainApiVerticle.class);
 
-    private int serverPort = {{serverPort}};
-    protected Router router;
+  HttpServer server;
+{{#apiInfo}}{{#apis}}  ServiceBinder binder{{classname}};
+{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}  MessageConsumer<JsonObject> consumer{{classname}};
+{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}
+  /**
+  * Start {{classname}} service
+  */
+  private void start{{classname}}() {
+    ServiceBinder binder{{classname}} = new ServiceBinder(vertx);
 
-    public int getServerPort() {
-        return serverPort;
-    }
+    // Create an instance of {{classname}} and mount to event bus
+    {{classname}} service = {{classname}}.create();
+    consumer{{classname}} = binder{{classname}}
+    // --> {{x-vertx-event-bus}}
+      .setAddress("{{classname}}.myapp")
+      .register({{classname}}.class, service);
+  }
+{{/apis}}{{/apiInfo}}
 
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }
+  /**
+   * This method constructs the router factory, mounts services and handlers and starts the http server with built router
+   * @return
+   */
+  private Future<Void> startHttpServer() {
+    Future<Void> future = Future.future();
+    OpenAPI3RouterFactory.create(this.vertx, "/openapi.json", openAPI3RouterFactoryAsyncResult -> {
+      if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
 
-    @Override
-    public void init(Vertx vertx, Context context) {
-        super.init(vertx, context);
-        router = Router.router(vertx);
-    }
+        // Mount services on event bus based on extensions
+        routerFactory.mountServicesFromExtensions();
 
-    @Override
-    public void start(Future<Void> startFuture) throws Exception {
-        Json.mapper.registerModule(new JavaTimeModule());
-        FileSystem vertxFileSystem = vertx.fileSystem();
-        vertxFileSystem.readFile("openapi.json", readFile -> {
-            if (readFile.succeeded()) {
-                Swagger swagger = new SwaggerParser().parse(readFile.result().toString(Charset.forName("utf-8")));
-                Router swaggerRouter = SwaggerRouter.swaggerRouter(router, swagger, vertx.eventBus(), new OperationIdServiceIdResolver());
-
-                deployVerticles(startFuture);
-
-                vertx.createHttpServer()
-                    .requestHandler(swaggerRouter::accept) 
-                    .listen(serverPort, h -> {
-                        if (h.succeeded()) {
-                            startFuture.complete();
-                        } else {
-                            startFuture.fail(h.cause());
-                        }
-                    });
-            } else {
-            	startFuture.fail(readFile.cause());
-            }
-        });        		        
-    }
-      
-    public void deployVerticles(Future<Void> startFuture) {
-        {{#apiInfo}}{{#apis}}
-        vertx.deployVerticle("{{apiPackage}}.{{classname}}Verticle", res -> {
-            if (res.succeeded()) {
-                LOGGER.info("{{classname}}Verticle : Deployed");
-            } else {
-                startFuture.fail(res.cause());
-                LOGGER.error("{{classname}}Verticle : Deployment failed");
-            }
+        // Generate the router
+        Router router = routerFactory.getRouter();
+        server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+        server.requestHandler(router).listen(ar -> {
+          // Error starting the HttpServer
+          if (ar.succeeded()) future.complete();
+          else future.fail(ar.cause());
         });
-        {{/apis}}{{/apiInfo}}
-    }
+      } else {
+        // Something went wrong during router factory initialization
+        future.fail(openAPI3RouterFactoryAsyncResult.cause());
+      }
+    });
+    return future;
+  }
+
+  @Override
+  public void start(Future<Void> future) {
+    {{#apiInfo}}{{#apis}}start{{classname}}();
+    {{/apis}}{{/apiInfo}}
+    startHttpServer().setHandler(future.completer());
+  }
+
+  /**
+   * This method closes the http server and unregister all services loaded to Event Bus
+   */
+  @Override
+  public void stop(){
+    this.server.close();
+{{#apiInfo}}{{#apis}}    consumer{{classname}}.unregister();
+{{/apis}}{{/apiInfo}}
+  }
+
 }

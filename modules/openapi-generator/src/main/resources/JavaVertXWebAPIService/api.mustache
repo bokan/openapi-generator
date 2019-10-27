@@ -1,31 +1,35 @@
 package {{package}};
 
-{{#imports}}import {{import}};
-{{/imports}}
-
-{{#rxInterface}}
-import {{#rxVersion2}}io.reactivex{{/rxVersion2}}{{^rxVersion2}}rx{{/rxVersion2}}.Completable;
-import {{#rxVersion2}}io.reactivex{{/rxVersion2}}{{^rxVersion2}}rx{{/rxVersion2}}.Single;
-{{/rxInterface}}
-{{^rxInterface}}
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-{{/rxInterface}}
+// import io.vertx.ext.web.api.OperationRequest;
+// import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
+import io.vertx.ext.web.api.*;
 
+import {{package}}.impl.{{classname}}Impl;
+
+{{#imports}}import {{import}};
+{{/imports}}
 import java.util.List;
 import java.util.Map;
 
+@WebApiServiceGen
 public interface {{classname}}  {
+
+  static {{classname}} create() {
+    return new {{classname}}Impl();
+  }
+
 {{#operations}}
 {{#operation}}
-    //{{#vendorExtensions}}{{x-serviceid}}{{/vendorExtensions}}
-    {{#rxInterface}}
-{{>RxMethod}}
-    {{/rxInterface}}
-    {{^rxInterface}}
+  /**
+  * method:      {{httpMethod}}
+  * path:        {{path}}
+  * summary:     {{summary}}
+  */
 {{>AsyncMethod}}
-    {{/rxInterface}}
-    
 {{/operation}}
 {{/operations}}
+
 }

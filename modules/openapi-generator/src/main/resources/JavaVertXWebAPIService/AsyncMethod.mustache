@@ -1,1 +1,3 @@
-    void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{^hasMore}}, {{/hasMore}}{{/allParams}}Handler<AsyncResult<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}>> handler);
+  void {{operationId}}(
+    {{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{^hasMore}}, {{/hasMore}}{{/allParams}}
+    OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);

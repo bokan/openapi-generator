@@ -66,8 +66,10 @@ public class JavaVertXWebAPIServiceCodegen extends AbstractJavaCodegen {
 
         apiTemplateFiles.clear();
         apiTemplateFiles.put("api.mustache", ".java");
-        apiTemplateFiles.put("apiVerticle.mustache", "Verticle.java");
+        //apiTemplateFiles.put("apiVerticle.mustache", "Verticle.java");
         apiTemplateFiles.put("apiException.mustache", "Exception.java");
+
+        typeMapping.put("UUID", "String");
 
         embeddedTemplateDir = templateDir = "JavaVertXWebAPIService";
 
@@ -145,9 +147,18 @@ public class JavaVertXWebAPIServiceCodegen extends AbstractJavaCodegen {
 
         supportingFiles.clear();
         supportingFiles.add(new SupportingFile("openapi.mustache", resourceFolder, "openapi.json"));
-//        supportingFiles.add(new SupportingFile("MainApiVerticle.mustache",
+        supportingFiles.add(new SupportingFile("model-package-info.mustache",
+                modelFileFolder(),
+                "package-info.java"));//        supportingFiles.add(new SupportingFile("MainApiVerticle.mustache",
+        supportingFiles.add(new SupportingFile("api-package-info.mustache",
+               apiFileFolder(),
+                "package-info.java"));//        supportingFiles.add(new SupportingFile("MainApiVerticle.mustache",
 //                sourceFolder + File.separator + rootPackage.replace(".", File.separator),
 //                "MainApiVerticle.java"));
+        supportingFiles.add(new SupportingFile("MainApiVerticle.mustache",
+                sourceFolder + File.separator + rootPackage.replace(".", File.separator),
+                "MainApiVerticle.java"));
+
         supportingFiles.add(new SupportingFile("MainApiException.mustache",
                 sourceFolder + File.separator + rootPackage.replace(".", File.separator),
                 "MainApiException.java"));
@@ -252,7 +263,10 @@ public class JavaVertXWebAPIServiceCodegen extends AbstractJavaCodegen {
         Map<HttpMethod, Operation> operationMap = path.readOperationsMap();
         if (operationMap != null) {
             for (Entry<HttpMethod, Operation> entry : operationMap.entrySet()) {
+
                 serviceIdTemp = computeServiceId(pathname, entry);
+                entry.getValue().addExtension("x-vertx-event-bus", entry.getValue().getTags().get(0) + "Api.myapp");
+                entry.getValue().addExtension("x-serviceid", serviceIdTemp);
                 entry.getValue().addExtension("x-serviceid", serviceIdTemp);
                 entry.getValue().addExtension("x-serviceid-varname",
                         serviceIdTemp.toUpperCase(Locale.ROOT) + "_SERVICE_ID");
