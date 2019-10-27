@@ -1,0 +1,19 @@
+package {{package}};
+
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.Fluent;
+import io.vertx.core.json.JsonObject;
+{{#imports}}import {{import}};
+{{/imports}}
+{{#serializableModel}}import java.io.Serializable;
+{{/serializableModel}}
+
+{{#models}}{{#model}}{{#description}}
+/**
+*  {{description}}
+*
+* @author slinkydeveloper
+*/
+
+{{/description}}{{^description}}
+{{/description}}{{#isEnum}}{{>enumOuterClass}}{{/isEnum}}{{^isEnum}}{{>pojo}}{{/isEnum}}{{/model}}{{/models}}
