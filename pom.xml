@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
     <name>openapi-generator-project</name>
     <!-- RELEASE_VERSION -->
-    <version>4.2.0-SNAPSHOT</version>
+    <version>4.2.1-SNAPSHOT</version>
     <!-- /RELEASE_VERSION -->
     <url>https://github.com/openapitools/openapi-generator</url>
     <scm>
@@ -266,6 +266,9 @@
                         </goals>
                         <configuration>
                             <rules>
+                                <requireJavaVersion>
+                                  <version>1.8.0</version>
+                                </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>3.2.5</version>
                                 </requireMavenVersion>
@@ -1164,6 +1167,7 @@
                 <module>samples/server/petstore/scala-lagom-server</module>
                 <module>samples/server/petstore/scala-play-server</module>
                 <module>samples/server/petstore/scalatra</module>
+                <module>samples/server/petstore/java-vertx-web/rx</module>
                 <module>samples/server/petstore/scala-finch</module>
                 <module>samples/server/petstore/kotlin/vertx</module>
                 <module>samples/server/petstore/kotlin-springboot</module>
@@ -1179,6 +1183,8 @@
                 </property>
             </activation>
             <modules>
+                <module>samples/server/petstore/go-api-server</module>
+                <module>samples/server/petstore/go-gin-api-server</module>
                 <!-- clients -->
                 <module>samples/openapi3/client/petstore/ruby</module>
                 <!-- test java-related projects -->
