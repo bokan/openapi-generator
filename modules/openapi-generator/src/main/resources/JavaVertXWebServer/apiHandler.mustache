@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.vertx.core.json.Json;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,8 @@ public class {{classname}}Handler {
         logger.info("{{operationId}}()");
         HttpServerResponse response = routingContext.response();
 
+        User user = routingContext.user();
+
         {{#returnType}}Single{{/returnType}}{{^returnType}}Completable{{/returnType}}.defer( () -> {
 {{#allParams}}{{^isBodyParam}}{{>headerParams}}{{>pathParams}}{{>queryParams}}{{>formParams}}{{/isBodyParam}}{{/allParams}}
 {{#allParams}}
@@ -49,7 +52,7 @@ public class {{classname}}Handler {
 {{#allParams}}
             logger.info("Parameter {{paramName}} is {}", {{paramName}});
 {{/allParams}}
-            return apiImpl.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+            return apiImpl.{{operationId}}(user{{#allParams}}, {{paramName}}{{/allParams}});
         })
         .subscribe(
             apiResponse -> {
