@@ -4,6 +4,7 @@ package {{package}};
 {{/imports}}
 
 import {{invokerPackage}}.ApiResponse;
+import io.reactivex.annotations.Nullable;
 import io.vertx.ext.auth.User;
 
 import io.reactivex.Single;
@@ -14,7 +15,7 @@ import java.util.Map;
 public interface {{classname}}  {
 {{#operations}}
 {{#operation}}
-    Single<ApiResponse<{{{returnType}}}>> {{operationId}}(User user{{#allParams}}, {{{dataType}}} {{paramName}}{{/allParams}});
+    Single<ApiResponse<{{{returnType}}}>> {{operationId}}(User user{{#allParams}}, {{^required}}@Nullable {{/required}}{{{dataType}}} {{paramName}}{{/allParams}});
 {{/operation}}
 {{/operations}}
 }
