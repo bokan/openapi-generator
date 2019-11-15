@@ -23,7 +23,7 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
   public {{{datatypeWithEnum}}} {{getter}}() {
     return {{name}};
   }
-  public void {{setter}}({{{datatypeWithEnum}}} {{name}}) {
+  public void {{setter}}({{^required}}@Nullable {{/required}}{{{datatypeWithEnum}}} {{name}}) {
     this.{{name}} = {{name}};
   }
 
